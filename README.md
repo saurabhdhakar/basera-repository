@@ -1,12 +1,12 @@
-# Basera Repository
+# Basera Importer
 
-Basera new repository
+Import basera
 
 This project was built with [Lovable](https://lovable.dev).
 
 ## Build with Lovable
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/8aade1ca-93db-42e2-8173-316acae00d00).
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/add3e133-686f-4812-8f8d-b64f6a4f350c).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
