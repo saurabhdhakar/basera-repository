@@ -6,7 +6,9 @@ let cache: Promise<StateEntry[]> | null = null;
 
 /** Fetches the single nested document location_data/all_states once per session. */
 export function fetchLocations(): Promise<StateEntry[]> {
-  cache ??= getDoc(doc(getFirestore(firebaseApp()), "location_data", "all_states"))
+  // Wrap in a promise so a missing Firebase setup becomes a handled error, not a crash.
+  cache ??= Promise.resolve()
+    .then(() => getDoc(doc(getFirestore(firebaseApp()), "location_data", "all_states")))
     .then((snap) => {
       if (!snap.exists()) throw new Error("Location data has not been added yet.");
       return normalizeLocationDoc(snap.data());
