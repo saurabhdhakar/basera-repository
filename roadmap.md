@@ -1,0 +1,15 @@
+# Basera welcome and sign-in
+- [x] Merge the five supplied location lists with exact ordering, arrow flags, and Chandigarh locality heading.
+- [x] Verify state drill-down, type-ahead search, and location selection.
+- [x] Add Firebase Google, explicit email modes, and password-reset actions.
+- [ ] Activate and verify real Firebase sign-in/reset delivery — blocked by missing Firebase web configuration and enabled providers.
+- [x] Keep Phone in place with the exact maintenance alert.
+- [x] Use transparent logos and forced-white authentication views; verify behavior.
+- [x] Convert welcome to a forced-white 2.5-second splash without a button or mock status bar.
+- [x] Remove the splash logo background without changing the login artwork.
+- [x] Test splash timing and verify the unchanged login flow.
+- [x] Replace welcome illustration with official logo; preserve copy and button.
+- [x] Build stacked sign-in options, navigation, language switch, and legal links.
+- [x] Verify screen transitions and layout.
+- Phone sign-in is unavailable in the existing app; no SMS setup was requested.
+- Legal links open notices until the owner supplies official Terms and Conditions and Privacy Policy.
