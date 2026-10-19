@@ -25,7 +25,9 @@ export function LocationSelection({ onDone, load = fetchLocations }: { onDone: (
   const run = useCallback(() => {
     let alive = true;
     setData({ status: "loading" });
-    load()
+    // Defer the call so a loader that throws synchronously still becomes a handled error.
+    Promise.resolve()
+      .then(() => load())
       .then((states) => alive && setData({ status: "ready", states }))
       .catch((e: unknown) => alive && setData({ status: "error", message: e instanceof Error ? e.message : "Could not load locations." }));
     return () => { alive = false; };
