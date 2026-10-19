@@ -45,4 +45,10 @@ describe("Location selection (Firestore data)", () => {
     render(<LocationSelection onDone={vi.fn()} load={() => Promise.reject(new Error("Location data has not been added yet."))} />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Location data has not been added yet.");
   });
+
+  it("shows an error instead of crashing when the loader throws immediately", async () => {
+    const thrower = () => { throw new Error("Firebase is not configured yet."); };
+    render(<LocationSelection onDone={vi.fn()} load={thrower} />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Firebase is not configured yet.");
+  });
 });
