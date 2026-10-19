@@ -1,4 +1,5 @@
 # Basera welcome and sign-in
+- [ ] Replace location entry with Ola autocomplete and real GPS reverse geocoding, synchronize marketplace location, and verify the flow.
 - [x] Merge the five supplied location lists with exact ordering, arrow flags, and Chandigarh locality heading.
 - [x] Verify state drill-down, type-ahead search, and location selection.
 - [x] Add Firebase Google, explicit email modes, and password-reset actions.
