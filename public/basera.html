@@ -2339,6 +2339,18 @@ function selectCity(c){
   showToast(t('toast_loc_set')+c);
 }
 
+// React owns Ola location selection; update the existing marketplace state.
+document.addEventListener('basera-location-selected', function(event){
+  var location = event.detail;
+  if(!location || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) return;
+  state.location = location;
+  state.city = location.city || location.address;
+  CITY_COORDS[state.city] = [location.latitude, location.longitude];
+  document.getElementById('locLabel').textContent = location.address;
+  closeModal('locModal');
+  render();
+});
+
 function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
 

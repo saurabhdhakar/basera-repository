@@ -5,6 +5,8 @@ import { PreHomeAuth } from "@/components/PreHomeAuth";
 import { LocationSelection } from "@/components/LocationSelection";
 import { firebaseConfigured, subscribeFirebaseSession } from "@/lib/firebase-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { LocationProvider, useLocationState } from '@/components/LocationState';
+import type { SelectedLocation } from '@/lib/ola-location';
 
 type AppStage = "checking" | "welcome" | "auth" | "opening" | "location" | "home";
 
@@ -19,7 +21,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  component: () => <LocationProvider><Index /></LocationProvider>,
 });
 
 function Index() {
@@ -99,8 +101,27 @@ function Index() {
 }
 
 function Marketplace() {
+  const [locationOpen, setLocationOpen] = useState(false);
+  const { location } = useLocationState();
   const [embeddedDocument, setEmbeddedDocument] = useState<Document | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const locationTrigger = useRef<HTMLElement | null>(null);
+  const applyLocation = useCallback((value: SelectedLocation) => {
+    embeddedDocument?.dispatchEvent(new CustomEvent('basera-location-selected', { detail: value }));
+  }, [embeddedDocument]);
+  useEffect(() => {
+    if (!embeddedDocument) return;
+    if (location) applyLocation(location);
+    const button = embeddedDocument.getElementById('locBtn');
+    const open = (event: Event) => {
+      event.preventDefault(); event.stopImmediatePropagation();
+      locationTrigger.current = button;
+      setLocationOpen(true);
+    };
+    button?.addEventListener('click', open, true);
+    return () => button?.removeEventListener('click', open, true);
+  }, [embeddedDocument, location, applyLocation]);
+  const closeLocation = () => { setLocationOpen(false); locationTrigger.current?.focus(); };
   useEffect(() => {
     const timer = window.setInterval(() => {
       const doc = frameRef.current?.contentDocument;
@@ -121,6 +142,7 @@ function Marketplace() {
       onLoad={(event) => setEmbeddedDocument(event.currentTarget.contentDocument)}
     />
     {embeddedDocument && <WishlistNavigation document={embeddedDocument} />}
+    {locationOpen && <div className="fixed inset-0 z-50 overflow-auto bg-background" onKeyDown={e => { if (e.key === 'Escape') closeLocation(); }}><LocationSelection onDone={closeLocation} onSelect={applyLocation} /></div>}
     </>
   );
 }

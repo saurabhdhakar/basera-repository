@@ -16,3 +16,5 @@
 - Firebase browser authentication lives in src/lib/firebase-auth.ts and initializes only with complete VITE_FIREBASE_* configuration; never fabricate credentials or use Firebase identity as Cloud authorization.
 - Preserve legacy Cloud session handling until Firebase is configured; Firebase session subscriptions then own pre-home entry so reloads retain Firebase login.
 - Keep location data and optional selection headings in src/data/locations.ts; key rendered rows by name plus position so supplied duplicate names remain distinct.
+- Ola location selection uses a shared React context and a narrow document event bridge to the embedded marketplace, so pre-home and marketplace selections share validated coordinates without replacing legacy authentication.
+- Keep Ola requests in server functions with a server-only OLA_API_KEY and sanitized failures; a VITE-prefixed private key would be exposed in exported browser bundles.
