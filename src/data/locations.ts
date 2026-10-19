@@ -7,7 +7,7 @@ const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : unde
 /** Accepts { states: [...] } or a map { "Bihar": { towns: [...] } }; towns may be strings or objects. */
 export function normalizeLocationDoc(doc: unknown): StateEntry[] {
   if (!doc || typeof doc !== "object") return [];
-  const raw = (doc as Record<string, unknown>).states;
+  const raw = (doc as Record<string, unknown>)["states"];
   const entries: [string | undefined, unknown][] = Array.isArray(raw)
     ? raw.map((s) => [undefined, s])
     : Object.entries(doc as Record<string, unknown>);
