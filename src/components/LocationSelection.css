@@ -1,0 +1,25 @@
+.ola-screen { min-height: 100svh; font-family: Arial, sans-serif; }
+.ola-screen .loc-panel { padding-bottom: 24px; }
+.ola-screen .loc-header { border-bottom: 1px solid var(--color-border); margin-bottom: 18px; }
+.ola-search { margin: 0 16px; border: 2px solid var(--color-foreground); border-radius: 4px; min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 12px; }
+.ola-search:focus-within { border-color: var(--auth-link); }
+.ola-search > svg { flex-shrink: 0; }
+.ola-search input { width: 100%; min-width: 0; height: 48px; font-size: 15px; color: var(--color-foreground); outline: none; background: transparent; border: 0; }
+.ola-gps { width: 100%; min-height: 84px; height: auto; justify-content: flex-start; padding: 20px 24px; gap: 18px; color: var(--auth-link); border-radius: 0; border-bottom: 1px solid var(--color-border); }
+.ola-gps > svg { width: 24px; height: 24px; }
+.ola-gps span, .ola-option span, .ola-selected span { display: grid; gap: 4px; text-align: left; min-width: 0; }
+.ola-gps strong { font-size: 16px; }
+.ola-gps small { font-size: 13px; font-weight: 400; }
+.ola-suggestions { list-style: none; padding: 0; margin: 0; }
+.ola-option { width: 100%; height: auto; min-height: 70px; justify-content: flex-start; border-radius: 0; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--color-border); white-space: normal; }
+.ola-option > svg { color: var(--color-muted-foreground); width: 20px; height: 20px; }
+.ola-option strong, .ola-selected strong { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.ola-option small, .ola-selected small { color: var(--color-muted-foreground); font-size: 13px; font-weight: 400; }
+.ola-suggestions [aria-selected="true"] { background: var(--color-muted); }
+.ola-error, .ola-status { margin: 16px 24px; font-size: 14px; line-height: 1.5; }
+.ola-error { color: var(--color-destructive); }
+.ola-status { color: var(--color-muted-foreground); }
+.ola-selected { display: flex; align-items: center; gap: 14px; padding: 20px 24px; }
+.ola-selected > svg { flex-shrink: 0; color: var(--color-brand-green); }
+.ola-selected span { flex: 1; }
+.ola-confirm { flex-shrink: 0; }

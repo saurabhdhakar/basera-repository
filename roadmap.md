@@ -1,4 +1,6 @@
 # Basera welcome and sign-in
+- [x] Implement Ola autocomplete, GPS reverse geocoding, shared location state, and marketplace selection; automated selection tests pass.
+- [ ] Verify live Ola address selection — blocked because Ola rejects the supplied credential with HTTP 401 for both autocomplete and reverse geocoding.
 - [x] Merge the five supplied location lists with exact ordering, arrow flags, and Chandigarh locality heading.
 - [x] Verify state drill-down, type-ahead search, and location selection.
 - [x] Add Firebase Google, explicit email modes, and password-reset actions.

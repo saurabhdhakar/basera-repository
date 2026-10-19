@@ -1,54 +1,55 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { LocationSelection } from "@/components/LocationSelection";
-import { normalizeLocationDoc } from "@/data/locations";
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { LocationSelection } from '@/components/LocationSelection';
+import { LocationProvider } from '@/components/LocationState';
+import { normalizeOlaPlace } from '@/lib/ola-location';
 
-vi.mock("@/lib/location-store", () => ({ fetchLocations: vi.fn() }));
-afterEach(cleanup);
+const mocks = vi.hoisted(() => ({ autocomplete: vi.fn(), resolve: vi.fn() }));
+vi.mock('@tanstack/react-start', () => ({ useServerFn: (fn: unknown) => fn }));
+vi.mock('@/lib/ola-location.functions', () => ({ autocompleteLocations: mocks.autocomplete, resolveLocation: mocks.resolve }));
+afterEach(() => { cleanup(); vi.clearAllMocks(); window.sessionStorage.clear(); });
+const selected = { address: 'Bhopal, Madhya Pradesh, India', city: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2599, longitude: 77.4126 };
+const show = () => render(<LocationProvider><LocationSelection onDone={vi.fn()} /></LocationProvider>);
 
-const doc = {
-  states: [
-    { name: "Madhya Pradesh", towns: [{ name: "Kailaras", district: "Morena" }, { name: "Bhopal", localities: ["Arera Colony", "MP Nagar"] }] },
-    { name: "Bihar", towns: ["Patna"] },
-  ],
-};
-const load = () => Promise.resolve(normalizeLocationDoc(doc));
-const search = () => screen.getByRole("searchbox", { name: "Search city, area or neighbourhood" });
-
-describe("Location selection (Firestore data)", () => {
-  it("shows a loading state, then states only", async () => {
-    render(<LocationSelection onDone={vi.fn()} load={load} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Loading locations");
-    expect(await screen.findByRole("button", { name: "Bihar" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Patna" })).not.toBeInTheDocument();
+describe('Ola location selection', () => {
+  it('resolves an autocomplete selection and synchronizes address, city, state and coordinates', async () => {
+    mocks.autocomplete.mockResolvedValue({ data: [{ placeId: 'bhopal', address: selected.address, title: 'Bhopal', subtitle: 'Madhya Pradesh, India' }], error: null });
+    mocks.resolve.mockResolvedValue({ data: selected, error: null });
+    show();
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Bhopal' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Bhopal Madhya Pradesh, India' }));
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveValue(selected.address));
+    expect(mocks.resolve).toHaveBeenCalledWith({ data: { kind: 'place', placeId: 'bhopal' } });
+    expect(JSON.parse(window.sessionStorage.getItem('basera:selected-location') || '{}')).toEqual(selected);
   });
-
-  it("drills state → town → locality and stores the choice", async () => {
-    const onDone = vi.fn();
-    render(<LocationSelection onDone={onDone} load={load} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Madhya Pradesh" }));
-    fireEvent.click(screen.getByRole("button", { name: "Bhopal" }));
-    expect(screen.getByText("CHOOSE LOCALITY")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "MP Nagar" }));
-    expect(window.localStorage.getItem("basera:location")).toBe("MP Nagar, Bhopal, Madhya Pradesh");
-    expect(onDone).toHaveBeenCalledTimes(1);
+  it('passes actual GPS coordinates to reverse geocoding and stores the returned address', async () => {
+    const getCurrentPosition = vi.fn((success: PositionCallback) => success({ coords: { latitude: 23.2599, longitude: 77.4126 } } as GeolocationPosition));
+    Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition } });
+    mocks.resolve.mockResolvedValue({ data: selected, error: null });
+    show(); fireEvent.click(screen.getByRole('button', { name: 'Use current location Enable Location' }));
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveValue(selected.address));
+    expect(mocks.resolve).toHaveBeenCalledWith({ data: { kind: 'gps', latitude: 23.2599, longitude: 77.4126 } });
+    expect(JSON.parse(window.sessionStorage.getItem('basera:selected-location') || '{}')).toEqual(selected);
   });
-
-  it("finds Kailaras with district and state", async () => {
-    render(<LocationSelection onDone={vi.fn()} load={load} />);
-    await screen.findByRole("button", { name: "Bihar" });
-    fireEvent.change(search(), { target: { value: "Kail" } });
-    expect(screen.getByRole("button", { name: "Kailaras, Morena, Madhya Pradesh" })).toBeInTheDocument();
+  it('does not save a fabricated location when GPS permission is denied', async () => {
+    Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition: vi.fn((_success, failure) => failure({ code: 1 })) } });
+    show(); fireEvent.click(screen.getByRole('button', { name: 'Use current location Enable Location' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('permission was denied');
+    expect(mocks.resolve).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem('basera:selected-location')).toBeNull();
   });
-
-  it("shows an error with retry when loading fails", async () => {
-    render(<LocationSelection onDone={vi.fn()} load={() => Promise.reject(new Error("Location data has not been added yet."))} />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Location data has not been added yet.");
+  it('ignores stale autocomplete responses after the query changes', async () => {
+    let finish: ((value: unknown) => void) | undefined;
+    mocks.autocomplete.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    show(); fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Bhopal' } });
+    await waitFor(() => expect(mocks.autocomplete).toHaveBeenCalled());
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '' } });
+    finish?.({ data: [{ placeId: 'old', address: 'Old address', title: 'Old address', subtitle: '' }], error: null });
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Old address' })).not.toBeInTheDocument());
   });
-
-  it("shows an error instead of crashing when the loader throws immediately", async () => {
-    const thrower = () => { throw new Error("Firebase is not configured yet."); };
-    render(<LocationSelection onDone={vi.fn()} load={thrower} />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Firebase is not configured yet.");
+  it('extracts city and state and rejects invalid coordinates', () => {
+    const place = { formatted_address: selected.address, address_components: [{ long_name: 'Bhopal', types: ['locality'] }, { long_name: 'Madhya Pradesh', types: ['administrative_area_level_1'] }], geometry: { location: { lat: 23.2599, lng: 77.4126 } } };
+    expect(normalizeOlaPlace(place)).toEqual(selected);
+    expect(normalizeOlaPlace({ ...place, geometry: { location: { lat: 200, lng: 77.4126 } } })).toBeNull();
   });
 });
