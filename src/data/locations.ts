@@ -1,6 +1,6 @@
 // Location data is loaded from Firestore (location_data/all_states); nothing is hard-coded here.
-export type Town = { name: string; district?: string; localities: string[]; arrow: boolean };
-export type StateEntry = { name: string; towns: Town[]; selectionHeading?: string };
+export type Town = { name: string; district?: string | undefined; localities: string[]; arrow: boolean };
+export type StateEntry = { name: string; towns: Town[]; selectionHeading?: string | undefined };
 
 const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);
 
@@ -14,20 +14,20 @@ export function normalizeLocationDoc(doc: unknown): StateEntry[] {
   const states: StateEntry[] = [];
   for (const [key, value] of entries) {
     const obj = (value && typeof value === "object" && !Array.isArray(value) ? value : {}) as Record<string, unknown>;
-    const name = str(obj.name) ?? key;
+    const name = str(obj["name"]) ?? key;
     if (!name) continue;
-    const list = Array.isArray(value) ? value : Array.isArray(obj.towns) ? obj.towns : Array.isArray(obj.cities) ? obj.cities : [];
+    const list = Array.isArray(value) ? value : Array.isArray(obj["towns"]) ? obj["towns"] : Array.isArray(obj["cities"]) ? obj["cities"] : [];
     const towns: Town[] = [];
     for (const t of list) {
       if (typeof t === "string") { if (str(t)) towns.push({ name: t.trim(), localities: [], arrow: false }); continue; }
       if (!t || typeof t !== "object") continue;
       const o = t as Record<string, unknown>;
-      const tn = str(o.name);
+      const tn = str(o["name"]);
       if (!tn) continue;
-      const localities = Array.isArray(o.localities) ? o.localities.map(str).filter((x): x is string => !!x) : [];
-      towns.push({ name: tn, district: str(o.district), localities, arrow: o.arrow === true || localities.length > 0 });
+      const localities = Array.isArray(o["localities"]) ? o["localities"].map(str).filter((x): x is string => !!x) : [];
+      towns.push({ name: tn, district: str(o["district"]), localities, arrow: o["arrow"] === true || localities.length > 0 });
     }
-    states.push({ name, towns, selectionHeading: str(obj.selectionHeading) });
+    states.push({ name, towns, selectionHeading: str(obj["selectionHeading"]) });
   }
   return states.sort((a, b) => a.name.localeCompare(b.name));
 }
