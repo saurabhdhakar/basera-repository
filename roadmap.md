@@ -1,4 +1,6 @@
 # Basera welcome and sign-in
+- [ ] Connect room address autocomplete and save the selected coordinates with listings.
+- [ ] Replace listing map placeholders with secure Ola Tiles maps and verify live requests.
 - [x] Implement Ola autocomplete, GPS reverse geocoding, shared location state, and marketplace selection; automated selection tests pass.
 - [ ] Verify live Ola address selection — blocked because Ola rejects the supplied credential with HTTP 401 for both autocomplete and reverse geocoding.
 - [x] Merge the five supplied location lists with exact ordering, arrow flags, and Chandigarh locality heading.
