@@ -8,7 +8,7 @@ import type { LocationSuggestion, SelectedLocation } from '@/lib/ola-location';
 import './PreHomeAuth.css';
 import './LocationSelection.css';
 
-export function LocationSelection({ onDone, onSelect }: { onDone: () => void; onSelect?: (location: SelectedLocation) => void }) {
+export function LocationSelection({ onDone, onSelect, inline = false }: { onDone: () => void; onSelect?: (location: SelectedLocation | null) => void; inline?: boolean }) {
   const { location, select } = useLocationState();
   const autocomplete = useServerFn(autocompleteLocations);
   const resolve = useServerFn(resolveLocation);
@@ -16,7 +16,7 @@ export function LocationSelection({ onDone, onSelect }: { onDone: () => void; on
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [busy, setBusy] = useState<'search' | 'gps' | 'place' | null>(null);
   const [error, setError] = useState('');
-  const [chosen, setChosen] = useState<SelectedLocation | null>(location);
+  const [chosen, setChosen] = useState<SelectedLocation | null>(inline ? null : location);
   const [active, setActive] = useState(-1);
   const [searched, setSearched] = useState(false);
   const version = useRef(0);
@@ -42,7 +42,8 @@ export function LocationSelection({ onDone, onSelect }: { onDone: () => void; on
 
   const commit = (value: SelectedLocation) => {
     setChosen(value); setQuery(value.address); setSuggestions([]); setBusy(null); setError('');
-    select(value); onSelect?.(value);
+    if (!inline) select(value);
+    onSelect?.(value);
   };
   const resolveChoice = async (data: { kind: 'place'; placeId: string } | { kind: 'gps'; latitude: number; longitude: number }, id: number) => {
     try {
@@ -73,12 +74,13 @@ export function LocationSelection({ onDone, onSelect }: { onDone: () => void; on
     } catch { setBusy(null); setError('Could not access your location. Please search instead.'); }
   };
   const edit = (value: string) => {
+    if (inline) onSelect?.(null);
     version.current++; setQuery(value); setChosen(null); setSuggestions([]); setActive(-1); setSearched(false); setBusy(null); setError('');
   };
   const resolving = busy === 'gps' || busy === 'place';
-  return <main className="prehome-auth loc-screen ola-screen" aria-label="Select your location">
+  return <main className={inline ? 'room-location ola-screen' : 'prehome-auth loc-screen ola-screen'} aria-label="Select your location">
     <section className="loc-panel">
-      <header className="loc-header"><Button variant="ghost" size="icon" className="loc-icon" aria-label="Close location selector" onClick={onDone}><X /></Button><h1>Location</h1></header>
+      {!inline && <header className="loc-header"><Button variant="ghost" size="icon" className="loc-icon" aria-label="Close location selector" onClick={onDone}><X /></Button><h1>Location</h1></header>}
       <div className="ola-search">
         <Search size={22} aria-hidden="true" />
         <input ref={input} role="combobox" aria-label="Search city, area or neighbourhood" aria-autocomplete="list" aria-controls="ola-suggestions" aria-expanded={suggestions.length > 0} aria-activedescendant={active >= 0 ? `ola-option-${active}` : undefined} placeholder="Search city, area or neighbourhood" maxLength={120} value={query || (chosen?.address ?? '')} disabled={resolving} onChange={e => edit(e.target.value)} onKeyDown={e => {
@@ -101,7 +103,7 @@ export function LocationSelection({ onDone, onSelect }: { onDone: () => void; on
         </li>)}
       </ul>
       {searched && !busy && !error && !chosen && suggestions.length === 0 && <p className="ola-status" role="status">No locations found.</p>}
-      {chosen && <div className="ola-selected"><Check aria-hidden="true" /><span><strong>{chosen.address}</strong><small>{[chosen.city, chosen.state].filter(Boolean).join(', ')}</small></span><Button className="ola-confirm" onClick={onDone}>Done</Button></div>}
+      {chosen && <div className="ola-selected"><Check aria-hidden="true" /><span><strong>{chosen.address}</strong><small>{[chosen.city, chosen.state].filter(Boolean).join(', ')}</small></span>{!inline && <Button className="ola-confirm" onClick={onDone}>Done</Button>}</div>}
     </section>
   </main>;
 }
