@@ -878,7 +878,7 @@ body.chat-list-open .nav-item.active svg{fill:var(--chat-selected);}
       <div class="field"><label data-i18n="post_lbl_city">City</label>
         <select id="pCity"></select>
       </div>
-      <div class="field"><label data-i18n="post_lbl_locality">Locality / Area</label><input id="pLocality" data-i18n-ph="post_ph_locality" placeholder="e.g. Andheri West"></div>
+      <div class="field"><label data-i18n="post_lbl_locality">Locality / Area</label><div id="roomLocationField"></div><input id="pLocality" type="hidden"></div>
       <div class="field"><label data-i18n="post_lbl_price">Monthly rent (₹)</label><input id="pPrice" type="number" data-i18n-ph="post_ph_price" placeholder="e.g. 12000"></div>
       <div class="field"><label data-i18n="post_lbl_furnish">Furnishing</label>
         <select id="pFurnish"><option value="Fully Furnished" data-i18n="furnish_full">Fully Furnished</option><option value="Semi Furnished" data-i18n="furnish_semi">Semi Furnished</option><option value="Unfurnished" data-i18n="furnish_none">Unfurnished</option></select>
@@ -2352,7 +2352,7 @@ document.addEventListener('basera-location-selected', function(event){
 });
 
 function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; if(id==='detailModal') document.dispatchEvent(new CustomEvent('basera-detail-close')); }
 
 document.querySelectorAll('[data-close]').forEach(function(el){
   el.addEventListener('click', function(){ closeModal(el.getAttribute('data-close')); });
@@ -2597,9 +2597,27 @@ function selectPostCat(cat){
   });
 }
 function resetPostForm(){
+  state.roomLocation = null;
+  document.dispatchEvent(new CustomEvent('basera-post-reset'));
   ['pTitle','pLocality','pPrice','pDesc','pPhone'].forEach(function(id){ document.getElementById(id).value=''; });
   selectPostCat('room');
 }
+
+document.addEventListener('basera-room-location', function(event){
+  var location = event.detail;
+  state.roomLocation = location;
+  document.getElementById('pLocality').value = location ? location.address : '';
+  if(location && location.city){
+    var citySelect = document.getElementById('pCity');
+    if(!Array.from(citySelect.options).some(function(option){ return option.value === location.city; })) citySelect.add(new Option(location.city, location.city));
+    citySelect.value = location.city;
+  }
+});
+document.getElementById('pCity').addEventListener('change', function(){
+  state.roomLocation = null;
+  document.getElementById('pLocality').value = '';
+  document.dispatchEvent(new CustomEvent('basera-post-reset'));
+});
 
 document.getElementById('uploadTrigger').addEventListener('click', function(){
   document.getElementById('photoInput').click();
@@ -2672,6 +2690,13 @@ document.getElementById('submitAdBtn').addEventListener('click', function(){
     desc: desc || '',
     listedBy: 'owner'
   };
+  if(state.roomLocation){
+    fields.location = state.roomLocation;
+    fields.address = state.roomLocation.address;
+    fields.state = state.roomLocation.state;
+    fields.latitude = state.roomLocation.latitude;
+    fields.longitude = state.roomLocation.longitude;
+  }
 
   createListingDoc(fields, state.photoFiles).then(function(){
     submitBtn.disabled = false;
@@ -2786,7 +2811,7 @@ function openDetail(l){
 
   '<div class="similar-cta"><div><b>'+t('similar_item_title')+'</b></div><button class="sc-btn" id="sellForFreeBtn">'+t('sell_for_free_btn')+'</button></div>'+
 
-  '<div class="map-card"><h4>'+t('map_published_label')+'</h4><div class="map-mock"><span class="pin">📍</span><span class="city-label">'+(l.city||'')+'</span></div></div>'+
+  '<div class="map-card"><h4>Property location</h4><div id="roomPropertyMap"></div></div>'+
 
   '<div class="adid-row"><span>'+t('ad_id_label')+': '+l.id+'</span><button class="report-ad-btn" id="reportAdLink">'+t('report_ad_btn')+'</button></div>'+
 
@@ -2888,6 +2913,7 @@ function openDetail(l){
   }
 
   openModal('detailModal');
+  document.dispatchEvent(new CustomEvent('basera-property-map', {detail:l}));
 }
 
 /* ---------------- INIT ---------------- */
