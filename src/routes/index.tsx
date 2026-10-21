@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { WishlistNavigation } from "@/components/WishlistNavigation";
 import { PreHomeAuth } from "@/components/PreHomeAuth";
 import { LocationSelection } from "@/components/LocationSelection";
+import { RoomLocationBridge } from '@/components/RoomLocationBridge';
 import { firebaseConfigured, subscribeFirebaseSession } from "@/lib/firebase-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationProvider, useLocationState } from '@/components/LocationState';
@@ -141,8 +142,8 @@ function Marketplace() {
       className="fixed inset-0 h-full w-full border-0"
       onLoad={(event) => setEmbeddedDocument(event.currentTarget.contentDocument)}
     />
-    {embeddedDocument && <WishlistNavigation document={embeddedDocument} />}
-    {locationOpen && <div className="fixed inset-0 z-50 overflow-auto bg-background" onKeyDown={e => { if (e.key === 'Escape') closeLocation(); }}><LocationSelection onDone={closeLocation} onSelect={applyLocation} /></div>}
+    {embeddedDocument && <><WishlistNavigation document={embeddedDocument} /><RoomLocationBridge document={embeddedDocument} /></>}
+    {locationOpen && <div className="fixed inset-0 z-50 overflow-auto bg-background" onKeyDown={e => { if (e.key === 'Escape') closeLocation(); }}><LocationSelection onDone={closeLocation} onSelect={value => { if (value) applyLocation(value); }} /></div>}
     </>
   );
 }

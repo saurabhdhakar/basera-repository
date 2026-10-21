@@ -1,0 +1,27 @@
+.room-location, .room-map-wrap {
+  --color-foreground: var(--text);
+  --color-background: var(--card);
+  --color-border: var(--line);
+  --color-muted: var(--bg);
+  --color-muted-foreground: var(--muted);
+  --color-destructive: var(--danger);
+  --color-brand-green: var(--green);
+  --auth-link: var(--chat-blue);
+  color: var(--text);
+}
+.room-location.ola-screen { min-height: 0; }
+.room-location .ola-search { margin: 0; }
+.room-location .ola-gps { padding: 12px; min-height: 60px; display: flex; align-items: center; background: var(--card); }
+.room-location .ola-option { display: flex; align-items: center; padding: 12px; color: var(--text); background: var(--card); }
+.room-location .ola-option:hover { background: var(--bg); }
+.room-location .ola-selected { padding: 12px 0; }
+.room-location .ola-status, .room-location .ola-error { margin: 12px 0; }
+.room-location .ola-suggestions { max-height: 260px; overflow-y: auto; }
+.room-location button { display: flex; align-items: center; justify-content: center; }
+.room-location .ola-option, .room-location .ola-gps { justify-content: flex-start; }
+.room-map-wrap { position: relative; }
+.room-map { height: 300px; width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.room-map-note { font-size: 12px; line-height: 1.5; padding: 10px 0; color: var(--muted); overflow-wrap: anywhere; }
+.room-map-status { position: absolute; inset: 0 0 auto; min-height: 50px; padding: 12px; color: var(--text); background: var(--card); display: flex; align-items: center; gap: 10px; }
+.room-map-status button { padding: 8px 12px; color: var(--chat-blue); border: 1px solid var(--line); border-radius: 4px; }
+.ola-property-pin { font-size: 32px; line-height: 1; }
