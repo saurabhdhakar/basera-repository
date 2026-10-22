@@ -66,4 +66,7 @@ describe('Ola location selection', () => {
     expect(normalizeOlaPlace(place)).toEqual(selected);
     expect(normalizeOlaPlace({ ...place, geometry: { location: { lat: 200, lng: 77.4126 } } })).toBeNull();
   });
+  it('uses the named locality when Ola city details omit its locality component', () => {
+    expect(normalizeOlaPlace({ name: 'Bhopal', types: ['locality'], formatted_address: selected.address, address_components: [{ long_name: 'Madhya Pradesh', types: ['administrative_area_level_1'] }], geometry: { location: { lat: 23.2599, lng: 77.4126 } } })).toEqual(selected);
+  });
 });
