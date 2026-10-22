@@ -1,8 +1,9 @@
 # Basera welcome and sign-in
-- [ ] Connect room address autocomplete and save the selected coordinates with listings.
-- [ ] Replace listing map placeholders with secure Ola Tiles maps and verify live requests.
+- [x] Connect room address autocomplete and include selected coordinates in the existing listing save payload; live address selection verified.
+- [x] Replace listing map placeholders with secure Ola Tiles maps; live tile/font requests and visible streets/marker verified independently.
+- [ ] Verify posting a room and reading its saved map through the signed-in listing flow — blocked by missing Firebase configuration and no available Cloud auth users.
 - [x] Implement Ola autocomplete, GPS reverse geocoding, shared location state, and marketplace selection; automated selection tests pass.
-- [ ] Verify live Ola address selection — blocked because Ola rejects the supplied credential with HTTP 401 for both autocomplete and reverse geocoding.
+- [x] Verify live Ola autocomplete and place details with the newly linked secure connection; Ola returns HTTP 200.
 - [x] Merge the five supplied location lists with exact ordering, arrow flags, and Chandigarh locality heading.
 - [x] Verify state drill-down, type-ahead search, and location selection.
 - [x] Add Firebase Google, explicit email modes, and password-reset actions.

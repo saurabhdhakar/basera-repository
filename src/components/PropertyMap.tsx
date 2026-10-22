@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { tileProxyUrl } from '@/lib/ola-tiles';
 import { normalizeOlaPlace, type SelectedLocation } from '@/lib/ola-location';
 import { Button } from '@/components/ui/button';
+import mapWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 
 export function PropertyMap({ location }: { location: SelectedLocation | null }) {
   const container = useRef<HTMLDivElement>(null);
@@ -13,8 +14,9 @@ export function PropertyMap({ location }: { location: SelectedLocation | null })
     let cancelled = false;
     let dispose: (() => void) | undefined;
     setStatus('loading');
-    void import('maplibre-gl').then(({ Map, Marker, NavigationControl, AttributionControl }) => {
+    void import('maplibre-gl').then(({ Map, Marker, NavigationControl, AttributionControl, setWorkerUrl }) => {
       if (cancelled || !container.current) return;
+      setWorkerUrl(mapWorkerUrl);
       const map = new Map({ container: container.current, style: tileProxyUrl('/tiles/vector/v1/styles/default-light-standard/style.json'),
         center: [location.longitude, location.latitude], zoom: 15, attributionControl: false, cooperativeGestures: true });
       map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
