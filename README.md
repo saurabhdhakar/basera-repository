@@ -25,10 +25,10 @@ npm run dev
 
 ## Ola Maps location selection
 
-Set `OLA_API_KEY` in your server environment (Lovable secret settings or your independent host's environment settings). It is read only inside TanStack server functions. Do not use `VITE_OLA_API_KEY`: Vite embeds those variables in publicly readable JavaScript.
+Ola Places and vector tiles use the linked Ola Maps connector. Set `LOVABLE_API_KEY` and `UDC_OLA_MAPS_API_KEY` in the server environment for the connector gateway; neither belongs in browser code. Do not use `VITE_OLA_API_KEY`: Vite embeds those variables in publicly readable JavaScript.
 
-Autocomplete and place details supply addresses and coordinates; GPS uses reverse geocoding and preserves the actual device coordinates. Selection lives in React state and optional tab-scoped session storage; it is not uploaded to an application database.
+Autocomplete and place details supply addresses and coordinates; GPS preserves the actual device coordinates. Browsing selection uses tab-scoped session storage. Room selection stays separate and is saved with the listing by the existing Firebase listing flow, which still requires Firebase configuration. Listing maps use those saved coordinates, never a guessed city centre; older listings without coordinates show an unavailable-location notice. MapLibre loads Ola vector tiles via an allowlisted same-origin proxy that rewrites style, TileJSON, sprite and font URLs.
 
 Independent deployment needs a TanStack Start-compatible server runtime, not static-only hosting. A Capacitor client must call a hosted secure service rather than bundle this private key, and must configure native location permissions. This change does not provide a native Android build or a Vercel deployment configuration.
 
-Use HTTPS for browser geolocation (localhost is allowed during development). After changing a secret, publish again to update the published app. Rotate any key previously shared in chat through Ola Maps, then replace `OLA_API_KEY` in secret settings.
+Use HTTPS for browser geolocation (localhost is allowed during development). After changing a secret, publish again to update the published app. Rotate any key previously shared in chat through Ola Maps, then update the Ola Maps connection securely.

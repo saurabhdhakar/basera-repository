@@ -12,6 +12,20 @@ const selected = { address: 'Bhopal, Madhya Pradesh, India', city: 'Bhopal', sta
 const show = () => render(<LocationProvider><LocationSelection onDone={vi.fn()} /></LocationProvider>);
 
 describe('Ola location selection', () => {
+  it('keeps room selections separate from the browsing location and clears edited coordinates', async () => {
+    window.sessionStorage.setItem('basera:selected-location', JSON.stringify({ ...selected, city: 'Delhi' }));
+    mocks.autocomplete.mockResolvedValue({ data: [{ placeId: 'bhopal', address: selected.address, title: 'Bhopal', subtitle: '' }], error: null });
+    mocks.resolve.mockResolvedValue({ data: selected, error: null });
+    const onSelect = vi.fn();
+    render(<LocationProvider><LocationSelection inline onDone={vi.fn()} onSelect={onSelect} /></LocationProvider>);
+    expect(screen.getByRole('combobox')).toHaveValue('');
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Bhopal' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Bhopal' }));
+    await waitFor(() => expect(onSelect).toHaveBeenLastCalledWith(selected));
+    expect(JSON.parse(window.sessionStorage.getItem('basera:selected-location') || '{}').city).toBe('Delhi');
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Another address' } });
+    expect(onSelect).toHaveBeenLastCalledWith(null);
+  });
   it('resolves an autocomplete selection and synchronizes address, city, state and coordinates', async () => {
     mocks.autocomplete.mockResolvedValue({ data: [{ placeId: 'bhopal', address: selected.address, title: 'Bhopal', subtitle: 'Madhya Pradesh, India' }], error: null });
     mocks.resolve.mockResolvedValue({ data: selected, error: null });
