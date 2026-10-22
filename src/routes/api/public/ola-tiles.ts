@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { rewriteTileResources, validTilePath } from '@/lib/ola-tiles';
 
-export const Route = createFileRoute('/api/public/ola-tiles/$')({
+export const Route = createFileRoute('/api/public/ola-tiles')({
   server: { handlers: { GET: async ({ request }) => {
     const path = new URL(request.url).searchParams.get('path') || '';
     if (!validTilePath(path)) return new Response('Invalid map resource', { status: 400 });
