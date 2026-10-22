@@ -10,43 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiPublicOlaTilesRouteImport } from './routes/api/public/ola-tiles'
+import { Route as ApiPublicOlaTilesSplatRouteImport } from './routes/api/public/ola-tiles.$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicOlaTilesRoute = ApiPublicOlaTilesRouteImport.update({
-  id: '/api/public/ola-tiles',
-  path: '/api/public/ola-tiles',
+const ApiPublicOlaTilesSplatRoute = ApiPublicOlaTilesSplatRouteImport.update({
+  id: '/api/public/ola-tiles/$',
+  path: '/api/public/ola-tiles/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/api/public/ola-tiles': typeof ApiPublicOlaTilesRoute
+  '/api/public/ola-tiles/$': typeof ApiPublicOlaTilesSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/api/public/ola-tiles': typeof ApiPublicOlaTilesRoute
+  '/api/public/ola-tiles/$': typeof ApiPublicOlaTilesSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/api/public/ola-tiles': typeof ApiPublicOlaTilesRoute
+  '/api/public/ola-tiles/$': typeof ApiPublicOlaTilesSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/ola-tiles'
+  fullPaths: '/' | '/api/public/ola-tiles/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/ola-tiles'
-  id: '__root__' | '/' | '/api/public/ola-tiles'
+  to: '/' | '/api/public/ola-tiles/$'
+  id: '__root__' | '/' | '/api/public/ola-tiles/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApiPublicOlaTilesRoute: typeof ApiPublicOlaTilesRoute
+  ApiPublicOlaTilesSplatRoute: typeof ApiPublicOlaTilesSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +58,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/ola-tiles': {
-      id: '/api/public/ola-tiles'
-      path: '/api/public/ola-tiles'
-      fullPath: '/api/public/ola-tiles'
-      preLoaderRoute: typeof ApiPublicOlaTilesRouteImport
+    '/api/public/ola-tiles/$': {
+      id: '/api/public/ola-tiles/$'
+      path: '/api/public/ola-tiles/$'
+      fullPath: '/api/public/ola-tiles/$'
+      preLoaderRoute: typeof ApiPublicOlaTilesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +70,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApiPublicOlaTilesRoute: ApiPublicOlaTilesRoute,
+  ApiPublicOlaTilesSplatRoute: ApiPublicOlaTilesSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
