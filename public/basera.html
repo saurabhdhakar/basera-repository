@@ -2144,6 +2144,11 @@ function handleCallOwner(phone){
 var state = { city:'All India', cat:'all', query:'', sort:'default', photos:[], photoFiles:[], postCat:'room' };
 var filters = { minBudget:null, maxBudget:null, furnish:'all', sortOpt:'date' };
 
+// Short name shown in the feed header and count pill (OLX shows the locality, never the full address).
+function feedLabel(){
+  return (state.location && (state.location.shortLabel || state.location.address)) || state.city;
+}
+
 /* ---------------- RENDER HELPERS ---------------- */
 function fmtPrice(p){ return '₹' + p.toLocaleString('en-IN'); }
 
@@ -2151,7 +2156,19 @@ function getListings(){
   // ALL already contains only status "active"/"approved" docs (server-side query),
   // but we re-check here as defence-in-depth so a pending/rejected doc can never leak into the feed.
   var list = ALL.filter(function(l){ return l.status === 'active' || l.status === 'approved'; });
-  if(state.city !== 'All India') list = list.filter(function(l){ return l.city === state.city; });
+  if(state.city !== 'All India'){
+    // OLX behaviour: a selected locality narrows the feed to that locality first;
+    // if no listing matches the locality yet, fall back to the whole city.
+    var cityMatches = list.filter(function(l){ return l.city === state.city; });
+    var locality = (state.location && state.location.locality && state.location.locality !== state.city) ? String(state.location.locality) : '';
+    if(locality){
+      var needle = locality.toLowerCase();
+      var localityMatches = cityMatches.filter(function(l){ return (l.locality||'').toLowerCase().indexOf(needle) !== -1; });
+      list = localityMatches.length ? localityMatches : cityMatches;
+    } else {
+      list = cityMatches;
+    }
+  }
   if(state.cat !== 'all') list = list.filter(function(l){ return l.category === state.cat; });
   if(state.query.trim()){
     var q = state.query.trim().toLowerCase();
