@@ -2144,6 +2144,11 @@ function handleCallOwner(phone){
 var state = { city:'All India', cat:'all', query:'', sort:'default', photos:[], photoFiles:[], postCat:'room' };
 var filters = { minBudget:null, maxBudget:null, furnish:'all', sortOpt:'date' };
 
+// Short name shown in the feed header and count pill (OLX shows the locality, never the full address).
+function feedLabel(){
+  return (state.location && (state.location.shortLabel || state.location.address)) || state.city;
+}
+
 /* ---------------- RENDER HELPERS ---------------- */
 function fmtPrice(p){ return '₹' + p.toLocaleString('en-IN'); }
 
@@ -2151,7 +2156,19 @@ function getListings(){
   // ALL already contains only status "active"/"approved" docs (server-side query),
   // but we re-check here as defence-in-depth so a pending/rejected doc can never leak into the feed.
   var list = ALL.filter(function(l){ return l.status === 'active' || l.status === 'approved'; });
-  if(state.city !== 'All India') list = list.filter(function(l){ return l.city === state.city; });
+  if(state.city !== 'All India'){
+    // OLX behaviour: a selected locality narrows the feed to that locality first;
+    // if no listing matches the locality yet, fall back to the whole city.
+    var cityMatches = list.filter(function(l){ return l.city === state.city; });
+    var locality = (state.location && state.location.locality && state.location.locality !== state.city) ? String(state.location.locality) : '';
+    if(locality){
+      var needle = locality.toLowerCase();
+      var localityMatches = cityMatches.filter(function(l){ return (l.locality||'').toLowerCase().indexOf(needle) !== -1; });
+      list = localityMatches.length ? localityMatches : cityMatches;
+    } else {
+      list = cityMatches;
+    }
+  }
   if(state.cat !== 'all') list = list.filter(function(l){ return l.category === state.cat; });
   if(state.query.trim()){
     var q = state.query.trim().toLowerCase();
@@ -2256,14 +2273,14 @@ function render(){
 
   // ---- LOADING state ----
   if(listingsLoading){
-    countEl.innerHTML = t('results_prefix')+' · '+state.city;
+    countEl.innerHTML = t('results_prefix')+' · '+feedLabel();
     grid.innerHTML = '<div class="empty-state"><div class="state-spinner"></div><div>'+t('loading_listings')+'</div></div>';
     return;
   }
 
   // ---- ERROR state ----
   if(listingsError){
-    countEl.innerHTML = t('results_prefix')+' · '+state.city;
+    countEl.innerHTML = t('results_prefix')+' · '+feedLabel();
     grid.innerHTML = '<div class="empty-state">'+
       '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#999" stroke-width="2"/><path d="M12 7v6M12 16.5v.5" stroke="#999" stroke-width="2" stroke-linecap="round"/></svg>'+
       '<div>'+t('error_listings')+'</div>'+
@@ -2278,7 +2295,7 @@ function render(){
 
   var list = getListings();
   countEl.innerHTML =
-    t('results_prefix')+' · '+state.city+' <span class="count-pill" style="margin-left:8px;">'+list.length+' '+t('ads_word')+'</span>';
+    t('results_prefix')+' · '+feedLabel()+' <span class="count-pill" style="margin-left:8px;">'+list.length+' '+t('ads_word')+'</span>';
 
   // ---- EMPTY state (no approved/active properties match) ----
   if(!list.length){
@@ -2333,6 +2350,7 @@ function renderBrowseLists(){
 
 function selectCity(c){
   state.city = c;
+  state.location = null;
   document.getElementById('locLabel').textContent = c;
   closeModal('locModal');
   render();
@@ -2344,7 +2362,13 @@ document.addEventListener('basera-location-selected', function(event){
   var location = event.detail;
   if(!location || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) return;
   state.location = location;
-  state.city = location.city || location.address;
+  var city = location.city;
+  if(!city && location.shortLabel){
+    // shortLabel is "locality, city" (or just the city) — recover the city for filtering.
+    var parts = String(location.shortLabel).split(',');
+    city = parts[parts.length - 1].trim();
+  }
+  state.city = city || location.address;
   CITY_COORDS[state.city] = [location.latitude, location.longitude];
   document.getElementById('locLabel').textContent = location.shortLabel || location.address;
   closeModal('locModal');
@@ -2387,6 +2411,7 @@ document.getElementById('citySearch').addEventListener('input', function(e){
 
 document.getElementById('allIndiaBtn').addEventListener('click', function(){
   state.city = 'All India';
+  state.location = null;
   document.getElementById('locLabel').textContent = 'All India';
   closeModal('locModal'); render();
 });
