@@ -21,7 +21,7 @@ export function normalizeOlaPlace(value: unknown): SelectedLocation | null {
   const get = (type: string) => components.find(c => c.types?.includes(type))?.long_name || '';
   const city = get('locality') || get('postal_town') || get('administrative_area_level_3') || get('administrative_area_level_2') || (place.types?.includes('locality') ? place.name || '' : '');
   const state = get('administrative_area_level_1');
-  const locality = get('sublocality_level_2') || get('sublocality_level_1') || get('sublocality') || get('neighborhood');
+  const locality = get('sublocality_level_1') || get('sublocality') || get('neighborhood') || get('sublocality_level_2');
   // OLX only ever shows the main locality and city, e.g. "Khandwa Naka, Indore";
   // the full formatted address stays on the saved record for listings and maps.
   const shortLabel = [locality && locality !== city ? locality : '', city].filter(Boolean).join(', ') || state || address;
