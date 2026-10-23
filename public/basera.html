@@ -2350,6 +2350,7 @@ function renderBrowseLists(){
 
 function selectCity(c){
   state.city = c;
+  state.location = null;
   document.getElementById('locLabel').textContent = c;
   closeModal('locModal');
   render();
@@ -2361,7 +2362,13 @@ document.addEventListener('basera-location-selected', function(event){
   var location = event.detail;
   if(!location || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) return;
   state.location = location;
-  state.city = location.city || location.address;
+  var city = location.city;
+  if(!city && location.shortLabel){
+    // shortLabel is "locality, city" (or just the city) — recover the city for filtering.
+    var parts = String(location.shortLabel).split(',');
+    city = parts[parts.length - 1].trim();
+  }
+  state.city = city || location.address;
   CITY_COORDS[state.city] = [location.latitude, location.longitude];
   document.getElementById('locLabel').textContent = location.shortLabel || location.address;
   closeModal('locModal');
@@ -2404,6 +2411,7 @@ document.getElementById('citySearch').addEventListener('input', function(e){
 
 document.getElementById('allIndiaBtn').addEventListener('click', function(){
   state.city = 'All India';
+  state.location = null;
   document.getElementById('locLabel').textContent = 'All India';
   closeModal('locModal'); render();
 });
