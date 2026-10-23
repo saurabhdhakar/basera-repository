@@ -1,4 +1,5 @@
 # Basera welcome and sign-in
+- [x] Make location selection behave like OLX: fill with main locality + city only and auto-advance without a Done step.
 - [x] Connect room address autocomplete and include selected coordinates in the existing listing save payload; live address selection verified.
 - [x] Replace listing map placeholders with secure Ola Tiles maps; live tile/font requests and visible streets/marker verified independently.
 - [ ] Verify posting a room and reading its saved map through the signed-in listing flow — blocked by missing Firebase configuration and no available Cloud auth users.

@@ -2346,7 +2346,7 @@ document.addEventListener('basera-location-selected', function(event){
   state.location = location;
   state.city = location.city || location.address;
   CITY_COORDS[state.city] = [location.latitude, location.longitude];
-  document.getElementById('locLabel').textContent = location.address;
+  document.getElementById('locLabel').textContent = location.shortLabel || location.address;
   closeModal('locModal');
   render();
 });
@@ -2606,7 +2606,7 @@ function resetPostForm(){
 document.addEventListener('basera-room-location', function(event){
   var location = event.detail;
   state.roomLocation = location;
-  document.getElementById('pLocality').value = location ? location.address : '';
+  document.getElementById('pLocality').value = location ? (location.shortLabel || location.address) : '';
   if(location && location.city){
     var citySelect = document.getElementById('pCity');
     if(!Array.from(citySelect.options).some(function(option){ return option.value === location.city; })) citySelect.add(new Option(location.city, location.city));

@@ -8,8 +8,8 @@ const mocks = vi.hoisted(() => ({ autocomplete: vi.fn(), resolve: vi.fn() }));
 vi.mock('@tanstack/react-start', () => ({ useServerFn: (fn: unknown) => fn }));
 vi.mock('@/lib/ola-location.functions', () => ({ autocompleteLocations: mocks.autocomplete, resolveLocation: mocks.resolve }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); window.sessionStorage.clear(); });
-const selected = { address: 'Bhopal, Madhya Pradesh, India', city: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2599, longitude: 77.4126 };
-const show = () => render(<LocationProvider><LocationSelection onDone={vi.fn()} /></LocationProvider>);
+const selected = { address: 'Bhopal, Madhya Pradesh, India', locality: '', city: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2599, longitude: 77.4126, shortLabel: 'Bhopal' };
+const show = (onDone = vi.fn()) => render(<LocationProvider><LocationSelection onDone={onDone} /></LocationProvider>);
 
 describe('Ola location selection', () => {
   it('keeps room selections separate from the browsing location and clears edited coordinates', async () => {
@@ -32,16 +32,27 @@ describe('Ola location selection', () => {
     show();
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Bhopal' } });
     fireEvent.click(await screen.findByRole('button', { name: 'Bhopal Madhya Pradesh, India' }));
-    await waitFor(() => expect(screen.getByRole('combobox')).toHaveValue(selected.address));
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveValue(selected.shortLabel));
     expect(mocks.resolve).toHaveBeenCalledWith({ data: { kind: 'place', placeId: 'bhopal' } });
     expect(JSON.parse(window.sessionStorage.getItem('basera:selected-location') || '{}')).toEqual(selected);
   });
-  it('passes actual GPS coordinates to reverse geocoding and stores the returned address', async () => {
+  it('advances automatically after a selection without a Done step', async () => {
+    mocks.autocomplete.mockResolvedValue({ data: [{ placeId: 'bhopal', address: selected.address, title: 'Bhopal', subtitle: '' }], error: null });
+    mocks.resolve.mockResolvedValue({ data: selected, error: null });
+    const onDone = vi.fn();
+    show(onDone);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Bhopal' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Bhopal' }));
+    await waitFor(() => expect(onDone).toHaveBeenCalled());
+    expect(screen.queryByRole('button', { name: 'Done' })).not.toBeInTheDocument();
+    expect(screen.queryByText(selected.address)).not.toBeInTheDocument();
+  });
+  it('passes actual GPS coordinates to reverse geocoding and fills the short label', async () => {
     const getCurrentPosition = vi.fn((success: PositionCallback) => success({ coords: { latitude: 23.2599, longitude: 77.4126 } } as GeolocationPosition));
     Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition } });
     mocks.resolve.mockResolvedValue({ data: selected, error: null });
     show(); fireEvent.click(screen.getByRole('button', { name: 'Use current location Enable Location' }));
-    await waitFor(() => expect(screen.getByRole('combobox')).toHaveValue(selected.address));
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveValue(selected.shortLabel));
     expect(mocks.resolve).toHaveBeenCalledWith({ data: { kind: 'gps', latitude: 23.2599, longitude: 77.4126 } });
     expect(JSON.parse(window.sessionStorage.getItem('basera:selected-location') || '{}')).toEqual(selected);
   });
@@ -68,5 +79,21 @@ describe('Ola location selection', () => {
   });
   it('uses the named locality when Ola city details omit its locality component', () => {
     expect(normalizeOlaPlace({ name: 'Bhopal', types: ['locality'], formatted_address: selected.address, address_components: [{ long_name: 'Madhya Pradesh', types: ['administrative_area_level_1'] }], geometry: { location: { lat: 23.2599, lng: 77.4126 } } })).toEqual(selected);
+  });
+  it('reduces a full address to the main locality and city, like OLX', () => {
+    const place = { formatted_address: 'Khandwa Naka, Residency Area, Indore, Madhya Pradesh 452001, India', address_components: [
+      { long_name: 'Khandwa Naka', types: ['sublocality_level_1', 'sublocality'] },
+      { long_name: 'Residency Area', types: ['sublocality_level_2'] },
+      { long_name: 'Indore', types: ['locality'] },
+      { long_name: 'Madhya Pradesh', types: ['administrative_area_level_1'] },
+    ], geometry: { location: { lat: 22.7196, lng: 75.8577 } } };
+    const result = normalizeOlaPlace(place);
+    expect(result?.shortLabel).toBe('Khandwa Naka, Indore');
+    expect(result?.address).toBe(place.formatted_address);
+    expect(result?.city).toBe('Indore');
+  });
+  it('falls back to the city name when no sublocality is present', () => {
+    const place = { formatted_address: selected.address, address_components: [{ long_name: 'Bhopal', types: ['locality'] }, { long_name: 'Madhya Pradesh', types: ['administrative_area_level_1'] }], geometry: { location: { lat: 23.2599, lng: 77.4126 } } };
+    expect(normalizeOlaPlace(place)?.shortLabel).toBe('Bhopal');
   });
 });
