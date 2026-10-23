@@ -2273,14 +2273,14 @@ function render(){
 
   // ---- LOADING state ----
   if(listingsLoading){
-    countEl.innerHTML = t('results_prefix')+' · '+state.city;
+    countEl.innerHTML = t('results_prefix')+' · '+feedLabel();
     grid.innerHTML = '<div class="empty-state"><div class="state-spinner"></div><div>'+t('loading_listings')+'</div></div>';
     return;
   }
 
   // ---- ERROR state ----
   if(listingsError){
-    countEl.innerHTML = t('results_prefix')+' · '+state.city;
+    countEl.innerHTML = t('results_prefix')+' · '+feedLabel();
     grid.innerHTML = '<div class="empty-state">'+
       '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#999" stroke-width="2"/><path d="M12 7v6M12 16.5v.5" stroke="#999" stroke-width="2" stroke-linecap="round"/></svg>'+
       '<div>'+t('error_listings')+'</div>'+
@@ -2295,7 +2295,7 @@ function render(){
 
   var list = getListings();
   countEl.innerHTML =
-    t('results_prefix')+' · '+state.city+' <span class="count-pill" style="margin-left:8px;">'+list.length+' '+t('ads_word')+'</span>';
+    t('results_prefix')+' · '+feedLabel()+' <span class="count-pill" style="margin-left:8px;">'+list.length+' '+t('ads_word')+'</span>';
 
   // ---- EMPTY state (no approved/active properties match) ----
   if(!list.length){
