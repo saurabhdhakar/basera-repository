@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { requestOla } from './ola-location.server';
-import { normalizeOlaPlace, type LocationSuggestion, type SelectedLocation } from './ola-location';
+import { normalizeOlaPlace, pickBestGpsPlace, type LocationSuggestion, type SelectedLocation } from './ola-location';
 
 type Result<T> = { data: T; error: string | null };
 const unavailable = 'Location search is unavailable. Please try again.';
@@ -30,7 +30,9 @@ export const resolveLocation = createServerFn({ method: 'POST' })
       const result = data.kind === 'place'
         ? await requestOla('details', { place_id: data.placeId }, key) as { result?: unknown }
         : await requestOla('reverse', { latlng: `${data.latitude},${data.longitude}` }, key) as { results?: unknown[] };
-      const raw = 'result' in result ? result.result : 'results' in result ? result.results?.[0] : null;
+      // GPS: vote on the area across every returned venue so the label names the
+      // sub-locality the coordinates actually sit in, not one mislabelled venue.
+      const raw = 'result' in result ? result.result : 'results' in result ? pickBestGpsPlace(result.results ?? []) : null;
       const location = normalizeOlaPlace(raw);
       if (!location) return { data: null, error: 'No address found for this location. Please choose another place.' };
       // Preserve the actual device position, not the centre of the returned address.
