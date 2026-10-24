@@ -2,6 +2,7 @@
 - [x] Make location selection behave like OLX: fill with main locality + city only and auto-advance without a Done step.
 - [x] Connect room address autocomplete and include selected coordinates in the existing listing save payload; live address selection verified.
 - [x] Replace listing map placeholders with secure Ola Tiles maps; live tile/font requests and visible streets/marker verified independently.
+- [ ] Tune GPS reverse geocoding to return the closest precise sub-locality/neighborhood name (e.g. Bilawali, Indore) instead of a farther area like Meherbann Nagar.
 - [ ] Verify posting a room and reading its saved map through the signed-in listing flow — blocked by missing Firebase configuration and no available Cloud auth users.
 - [x] Implement Ola autocomplete, GPS reverse geocoding, shared location state, and marketplace selection; automated selection tests pass.
 - [x] Verify live Ola autocomplete and place details with the newly linked secure connection; Ola returns HTTP 200.
