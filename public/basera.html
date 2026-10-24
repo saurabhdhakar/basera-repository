@@ -2727,7 +2727,7 @@ document.getElementById('submitAdBtn').addEventListener('click', function(){
     submitBtn.disabled = false;
     closeModal('postModal');
     showToast(t('toast_ad_submitted_review'));
-    state.city = city; document.getElementById('locLabel').textContent = city;
+    state.city = city; state.location = null; document.getElementById('locLabel').textContent = city;
     render();
   }).catch(function(err){
     console.error('createListingDoc failed:', err);
